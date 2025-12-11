@@ -1,0 +1,56 @@
+# Baby_Nas Local VM Project .gitignore
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+agent-logs/
+
+# PowerShell specific
+*.ps1.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# WireGuard keys and configs (keep examples, ignore generated)
+wireguard-*.conf
+*.key
+*.pub
+!example-*.conf
+
+# Veeam specific
+veeam/backups/
+veeam/*.vbk
+veeam/*.vib
+veeam/*.vrb
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Config files with sensitive data
+*config*.json
+!*config*.example.json
+monitoring-config.json
+
+# Credentials
+credentials.json
+token.pickle
+*.pickle

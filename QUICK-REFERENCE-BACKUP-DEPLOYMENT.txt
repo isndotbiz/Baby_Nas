@@ -1,0 +1,403 @@
+================================================================================
+                   BACKUP DEPLOYMENT - QUICK REFERENCE
+================================================================================
+
+QUICK START (Recommended)
+------------------------
+Run as Administrator:
+  powershell -ExecutionPolicy Bypass -File .\AUTOMATED-BACKUP-SETUP.ps1
+
+This will guide you through deploying all three backup systems.
+
+================================================================================
+INDIVIDUAL SCRIPTS
+================================================================================
+
+1. VEEAM AGENT FOR WINDOWS (Local System Backup)
+   -----------------------------------------------
+   File: DEPLOY-VEEAM-COMPLETE.ps1
+
+   Quick:
+     .\DEPLOY-VEEAM-COMPLETE.ps1
+
+   With Parameters:
+     .\DEPLOY-VEEAM-COMPLETE.ps1 -BabyNASIP 172.21.203.18 -NoGUI
+
+   What it does:
+     • Checks/installs Veeam Agent for Windows
+     • Maps \\baby.isn.biz\Veeam share
+     • Creates daily backup job (1:00 AM)
+     • Sets 7-day retention
+     • Tests connectivity
+
+   System Requirements:
+     • Windows 10/11 or Server 2016+
+     • Administrator privileges
+     • Network access to 172.21.203.18
+
+   Typical Time: 5-10 minutes
+   Log: C:\Logs\VEEAM-DEPLOYMENT-*.log
+
+
+2. PHONE BACKUP INFRASTRUCTURE (SMB Share)
+   ----------------------------------------
+   File: DEPLOY-PHONE-BACKUPS-WINDOWS.ps1
+
+   Quick:
+     .\DEPLOY-PHONE-BACKUPS-WINDOWS.ps1
+
+   With Parameters:
+     .\DEPLOY-PHONE-BACKUPS-WINDOWS.ps1 -QuotaGB 1000 -NoGUI
+
+   What it does:
+     • Maps \\baby.isn.biz\PhoneBackups share
+     • Creates device folders (Galaxy-S24, iPhone, iPad)
+     • Verifies 500GB quota
+     • Tests write permissions
+     • Optimizes SMB performance
+
+   System Requirements:
+     • Windows 10/11 or Server 2016+
+     • Administrator privileges
+     • Network access to 172.21.203.18
+
+   Typical Time: 2-5 minutes
+   Log: C:\Logs\PHONE-BACKUPS-DEPLOYMENT-*.log
+
+
+3. TIME MACHINE FOR MAC (Mac System Backup)
+   ----------------------------------------
+   File: DEPLOY-TIME-MACHINE-MAC.sh
+
+   Quick (on Mac):
+     chmod +x DEPLOY-TIME-MACHINE-MAC.sh
+     ./DEPLOY-TIME-MACHINE-MAC.sh
+
+   What it does:
+     • Mounts \\baremetal.isn.biz\TimeMachine
+     • Configures Time Machine destination
+     • Sets hourly backup schedule
+     • Tests network connectivity
+
+   System Requirements:
+     • macOS 10.7 or later
+     • Administrator/sudo privileges
+     • Network access to 10.0.0.89
+
+   Typical Time: 5-10 minutes (plus manual setup)
+   Log: ~/Library/Logs/DEPLOY-TIME-MACHINE-MAC-*.log
+
+
+4. VERIFY ALL BACKUPS (Health Check)
+   ----------------------------------
+   File: VERIFY-ALL-BACKUPS.ps1
+
+   Quick:
+     .\VERIFY-ALL-BACKUPS.ps1
+
+   With Detailed Testing:
+     .\VERIFY-ALL-BACKUPS.ps1 -DetailedReport -TestDataIntegrity
+
+   What it does:
+     • Tests network connectivity (both systems)
+     • Checks Veeam service status
+     • Verifies SMB shares accessible
+     • Checks phone device folders
+     • Reports storage usage
+     • Generates HTML report
+
+   Run Frequency: Weekly or monthly
+   Typical Time: 2-3 minutes
+   Report: C:\Logs\BACKUP-VERIFICATION-Report-*.html
+
+================================================================================
+NETWORK CONFIGURATION
+================================================================================
+
+IP Addresses:
+  Baby NAS (Veeam + Phone Backups):  172.21.203.18
+  Bare Metal (Time Machine):         10.0.0.89
+
+Hostnames:
+  Baby NAS:      baby.isn.biz
+  Bare Metal:    baremetal.isn.biz
+
+SMB Ports:
+  445 (SMB3)     Primary
+  139 (SMB1)     Legacy (optional)
+
+Firewall Rules Needed:
+  Windows: Allow SMB port 445 inbound (added automatically)
+  macOS:   Allow SMB port 445 (automatic)
+
+================================================================================
+BACKUP SCHEDULES
+================================================================================
+
+VEEAM WINDOWS BACKUPS
+  Frequency:  Daily
+  Time:       1:00 AM (01:00)
+  Retention:  7 days
+  Destination: \\baby.isn.biz\Veeam
+  Drives:     C:, D: (customizable)
+
+PHONE BACKUPS
+  Frequency:  Per device app (varies)
+  Retention:  Until manually deleted
+  Destination: \\baby.isn.biz\PhoneBackups
+  Quota:      500 GB per device
+
+TIME MACHINE (MAC)
+  Frequency:  Hourly
+  Retention:  Until space needed
+  Destination: \\baremetal.isn.biz\TimeMachine
+  Mount Point: /Volumes/TimeMachine-Backup
+
+================================================================================
+DEVICE FOLDERS (Phone Backups)
+================================================================================
+
+Automatically Created:
+  /Galaxy-S24-Ultra    - Samsung Galaxy S24 Ultra backups
+  /Galaxy-S24          - Samsung Galaxy S24 backups
+  /iPhone-15-Pro       - iPhone 15 Pro backups
+  /iPhone-15           - iPhone 15 backups
+  /iPad                - iPad backups
+
+Add Custom Folders:
+  1. Mount share (X:\ or Y:\ drive)
+  2. Create new folder: mkdir "Device-Name"
+  3. Configure app on device to use folder
+
+================================================================================
+TROUBLESHOOTING QUICK FIXES
+================================================================================
+
+Network Not Accessible
+  $ ping 172.21.203.18
+  $ Test-NetConnection -ComputerName baby.isn.biz -Port 445
+  $ net use * /delete /yes
+  Fix: Check VPN, firewall, restart network adapter
+
+SMB Share Access Denied
+  $ net use \\baby.isn.biz\Veeam /user:admin password
+  Fix: Verify credentials, check TrueNAS permissions
+
+Veeam Service Not Running
+  $ Get-Service VeeamEndpointBackupSvc
+  $ Start-Service VeeamEndpointBackupSvc
+  Fix: Set to auto-start, enable SMB in firewall
+
+Drive Letter Not Available
+  $ net use * /delete /yes
+  Fix: Remove old connections, try different letter (X, Y, Z)
+
+Time Machine Not Backing Up
+  # Check mount
+  $ mount | grep TimeMachine
+  # Verify space
+  $ df /Volumes/TimeMachine-Backup
+  Fix: Remount share, check Mac network settings
+
+================================================================================
+LOG FILE LOCATIONS
+================================================================================
+
+Windows Logs:
+  C:\Logs\VEEAM-DEPLOYMENT-*.log
+  C:\Logs\VEEAM-DEPLOYMENT-Report-*.html
+  C:\Logs\PHONE-BACKUPS-DEPLOYMENT-*.log
+  C:\Logs\PHONE-BACKUPS-DEPLOYMENT-Report-*.html
+  C:\Logs\BACKUP-VERIFICATION-*.log
+  C:\Logs\BACKUP-VERIFICATION-Report-*.html
+  C:\Logs\AUTOMATED-BACKUP-SETUP-*.log
+
+Mac Logs:
+  ~/Library/Logs/DEPLOY-TIME-MACHINE-MAC-*.log
+  ~/Library/Logs/DEPLOY-TIME-MACHINE-MAC-Report-*.txt
+
+Veeam Application Logs:
+  C:\ProgramData\Veeam\Endpoint\*
+
+TrueNAS SMB Logs (SSH):
+  /var/log/samba/
+  /var/log/messages
+
+================================================================================
+MAINTENANCE SCHEDULE
+================================================================================
+
+WEEKLY
+  [ ] Check: VERIFY-ALL-BACKUPS.ps1 results
+  [ ] Monitor: Available space on shares
+  [ ] Review: Error logs for any issues
+
+MONTHLY
+  [ ] Test: Restore a file from backup
+  [ ] Verify: All backup jobs completed successfully
+  [ ] Archive: Old log files
+
+QUARTERLY
+  [ ] Full restoration test (entire dataset)
+  [ ] Update: Veeam Agent software
+  [ ] Review: Retention policies
+
+ANNUALLY
+  [ ] Disaster recovery drill
+  [ ] Security audit of SMB shares
+  [ ] Capacity planning review
+  [ ] Update: Documentation
+
+================================================================================
+COMMON COMMANDS
+================================================================================
+
+PowerShell - Network Testing
+  $ ping 172.21.203.18
+  $ Test-NetConnection -ComputerName baby.isn.biz -Port 445
+  $ net use
+  $ net use \\baby.isn.biz\Veeam
+  $ net use * /delete /yes
+
+PowerShell - Veeam Status
+  $ Get-Service VeeamEndpointBackupSvc
+  $ Get-EventLog -LogName Application -Source "*Veeam*" -Newest 10
+
+Bash (macOS) - Time Machine
+  $ tmutil status
+  $ mount | grep TimeMachine
+  $ df /Volumes/TimeMachine-Backup
+  $ tmutil startbackup
+  $ tmutil listbackups
+  $ log stream --predicate 'process == "backupd"'
+
+================================================================================
+PARAMETERS REFERENCE
+================================================================================
+
+DEPLOY-VEEAM-COMPLETE.ps1
+  -BabyNASIP            (172.21.203.18)
+  -BabyNASHostname      (baby.isn.biz)
+  -VeeamSharePath       (\\baby.isn.biz\Veeam)
+  -BackupDrives         (@("C:", "D:"))
+  -RetentionDays        (7)
+  -ScheduleTime         ("01:00")
+  -Username             (network username)
+  -Password             (network password)
+  -NoGUI                (skip interactive prompts)
+  -SkipNetworkTest      (skip connectivity check)
+
+DEPLOY-PHONE-BACKUPS-WINDOWS.ps1
+  -BabyNASIP            (172.21.203.18)
+  -BabyNASHostname      (baby.isn.biz)
+  -PhoneBackupShare     (\\baby.isn.biz\PhoneBackups)
+  -QuotaGB              (500)
+  -Username             (network username)
+  -Password             (network password)
+  -CreateDeviceFolders  (true)
+  -NoGUI                (skip interactive prompts)
+  -SkipConnectivity     (skip network test)
+
+VERIFY-ALL-BACKUPS.ps1
+  -BabyNASIP            (172.21.203.18)
+  -BareMetalIP          (10.0.0.89)
+  -DetailedReport       (true)
+  -TestDataIntegrity    (false - enable for thorough check)
+  -AlertThresholdGB     (50)
+
+AUTOMATED-BACKUP-SETUP.ps1
+  -BabyNASIP            (172.21.203.18)
+  -BareMetalIP          (10.0.0.89)
+  -DeployVeeam          (true)
+  -DeployPhoneBackups   (true)
+  -DeployTimeMachine    (false)
+  -NoGUI                (skip interactive)
+  -SkipValidation       (skip pre-check)
+
+================================================================================
+SUPPORT & RESOURCES
+================================================================================
+
+Veeam:
+  Website:      https://www.veeam.com
+  Download:     https://www.veeam.com/windows-endpoint-server-backup-free.html
+  Docs:         https://www.veeam.com/backup-replication-resources.html
+  Forum:        https://forums.veeam.com
+
+TrueNAS:
+  Website:      https://www.truenas.com
+  Documentation: https://www.truenas.com/docs/
+  Download:     https://www.truenas.com/download-truenas-core/
+
+macOS Time Machine:
+  Apple Support: https://support.apple.com/en-us/108958
+
+Windows SMB:
+  Firewall Docs: https://docs.microsoft.com/windows/security/identity-protection/windows-firewall/
+
+================================================================================
+DEPLOYMENT CHECKLIST
+================================================================================
+
+PRE-DEPLOYMENT
+  [ ] Verify network connectivity to both systems
+  [ ] Ensure administrator privileges on Windows
+  [ ] Verify SMB shares exist on TrueNAS
+  [ ] Confirm available disk space
+  [ ] Backup current system configuration
+
+VEEAM SETUP
+  [ ] Run DEPLOY-VEEAM-COMPLETE.ps1
+  [ ] Verify SMB share mapped
+  [ ] Check backup job created
+  [ ] Verify daily schedule set
+  [ ] Run test backup immediately
+  [ ] Confirm backup files created
+
+PHONE BACKUP SETUP
+  [ ] Run DEPLOY-PHONE-BACKUPS-WINDOWS.ps1
+  [ ] Verify SMB share mounted
+  [ ] Check device folders created
+  [ ] Test write permissions
+  [ ] Install backup app on first phone
+  [ ] Configure app to use share path
+  [ ] Run test backup on phone
+
+TIME MACHINE SETUP (on Mac)
+  [ ] Copy DEPLOY-TIME-MACHINE-MAC.sh to Mac
+  [ ] Make executable: chmod +x script.sh
+  [ ] Run: ./DEPLOY-TIME-MACHINE-MAC.sh
+  [ ] Verify mount: mount | grep TimeMachine
+  [ ] Manually configure Time Machine if needed
+  [ ] Run initial backup (may take hours)
+  [ ] Verify regular hourly backups occur
+
+VERIFICATION
+  [ ] Run VERIFY-ALL-BACKUPS.ps1
+  [ ] Check all systems show green/OK
+  [ ] Review detailed HTML report
+  [ ] Archive log files to safe location
+  [ ] Document any issues encountered
+
+POST-DEPLOYMENT
+  [ ] Create written runbook for your team
+  [ ] Test restore procedure
+  [ ] Document all custom settings
+  [ ] Set calendar reminders for maintenance
+  [ ] Share access info with administrators
+
+================================================================================
+EMERGENCY CONTACTS
+================================================================================
+
+System Administrator:  [Contact Info]
+Backup Specialist:     [Contact Info]
+Network Administrator: [Contact Info]
+Veeam Support:         https://www.veeam.com/support/
+TrueNAS Support:       https://www.truenas.com/community/
+
+================================================================================
+Version: 1.0
+Last Updated: 2024-12-10
+Maintained By: System Administrator
+================================================================================
