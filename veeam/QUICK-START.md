@@ -20,7 +20,7 @@ cd D:\workspace\True_Nas\windows-scripts\veeam
 ### Step 3: Follow Prompts
 The script will:
 - Auto-detect Veeam installer in D:\ISOs\
-- Prompt for TrueNAS SMB password (uppercut%$##)
+- Use credentials from .env file (or prompt if not configured)
 - Mount network shares automatically
 - Configure workspace and WSL backups
 - Guide you through Veeam UI setup
@@ -36,10 +36,13 @@ The script will:
 ## One-Liner Deployment
 
 ```powershell
-# Enhanced deployment with credentials (Administrator PowerShell)
-cd D:\workspace\True_Nas\windows-scripts\veeam
-$password = ConvertTo-SecureString "uppercut%$##" -AsPlainText -Force
-.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true -SmbPassword $password
+# Enhanced deployment - uses credentials from .env file (Administrator PowerShell)
+cd D:\workspace\Baby_Nas\veeam
+.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true
+
+# Or with explicit password (not recommended - use .env instead):
+# $password = ConvertTo-SecureString "YOUR-PASSWORD-HERE" -AsPlainText -Force
+# .\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true -SmbPassword $password
 ```
 
 ---

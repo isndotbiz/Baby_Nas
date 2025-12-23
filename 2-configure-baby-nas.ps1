@@ -4,18 +4,21 @@
 # Configures TrueNAS Baby NAS from Windows after installation
 ###############################################################################
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$BabyNasIP,
+    [Parameter(Mandatory=$false)]
+    [string]$BabyNasIP = (Get-EnvVariable "TRUENAS_IP"),
 
     [Parameter(Mandatory=$false)]
-    [string]$Username = "truenas_admin",
+    [string]$Username = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
 
     [Parameter(Mandatory=$false)]
-    [string]$Password = "uppercut%`$##",
+    [string]$Password = (Get-EnvVariable "TRUENAS_PASSWORD"),
 
     [Parameter(Mandatory=$false)]
-    [string]$RootPassword = "uppercut%`$##"
+    [string]$RootPassword = (Get-EnvVariable "TRUENAS_PASSWORD")
 )
 
 $ErrorActionPreference = "Stop"

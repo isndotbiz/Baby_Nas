@@ -22,21 +22,24 @@ This enhanced deployment system provides:
 - PowerShell 5.1 or later
 - Administrator privileges
 - Network access to TrueNAS (baby.isn.biz / 172.21.203.18)
-- SMB credentials (truenas_admin / uppercut%$##)
+- SMB credentials configured in .env file (see .env.example)
 - Veeam Agent installer in D:\ISOs\ (optional, can download)
 
 ### One-Command Deployment
 
 ```powershell
 # Run as Administrator
-cd D:\workspace\True_Nas\windows-scripts\veeam
+cd D:\workspace\Baby_Nas\veeam
 
-# Interactive deployment (recommended for first time)
+# Interactive deployment (recommended for first time - uses .env credentials)
 .\DEPLOY-VEEAM-ENHANCED.ps1
 
-# Or automated deployment with credentials
-$password = ConvertTo-SecureString "uppercut%$##" -AsPlainText -Force
-.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true -SmbPassword $password
+# Or automated deployment (unattended mode - uses .env credentials)
+.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true
+
+# If you need to specify password explicitly (not recommended):
+# $password = ConvertTo-SecureString "YOUR-PASSWORD-HERE" -AsPlainText -Force
+# .\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true -SmbPassword $password
 ```
 
 ### What Happens During Deployment
@@ -137,9 +140,8 @@ D:\workspace\True_Nas\windows-scripts\veeam\
 # Skip WSL backup configuration
 .\DEPLOY-VEEAM-ENHANCED.ps1 -SkipWSLBackup $true
 
-# Complete unattended deployment
-$password = ConvertTo-SecureString "uppercut%$##" -AsPlainText -Force
-.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true -SmbPassword $password
+# Complete unattended deployment (uses .env credentials)
+.\DEPLOY-VEEAM-ENHANCED.ps1 -Unattended $true
 ```
 
 ### Monitoring
@@ -192,9 +194,9 @@ The script provides configuration guidance, but you **must** manually configure 
 4. Select drives: **C:, D:**
 
 5. Destination: **\\baby.isn.biz\Veeam**
-   - Enter credentials when prompted:
-   - Username: `truenas_admin`
-   - Password: `uppercut%$##`
+   - Enter credentials when prompted (use values from your .env file):
+   - Username: Use TRUENAS_USERNAME from .env
+   - Password: Use TRUENAS_PASSWORD from .env
 
 6. Cache location: **C:\VeeamCache** (10-20 GB recommended)
 
@@ -327,8 +329,12 @@ Add-Content "$env:SystemRoot\System32\drivers\etc\hosts" "`n172.21.203.18`tbaby.
 # 4. Test SMB connectivity
 Test-NetConnection -ComputerName baby.isn.biz -Port 445
 
-# 5. Manually mount with credentials
-net use \\baby.isn.biz\Veeam /user:truenas_admin "uppercut%$##"
+# 5. Manually mount with credentials (use your .env values)
+# Load .env first
+. .\Load-EnvFile.ps1
+$username = Get-EnvVariable "TRUENAS_USERNAME"
+$password = Get-EnvVariable "TRUENAS_PASSWORD"
+net use \\baby.isn.biz\Veeam /user:$username "$password"
 
 # 6. Check firewall
 Test-NetConnection -ComputerName 172.21.203.18 -Port 445 -InformationLevel Detailed

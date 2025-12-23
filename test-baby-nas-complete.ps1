@@ -4,10 +4,13 @@
 # Tests all aspects of Baby NAS configuration
 ###############################################################################
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
-    [string]$BabyNasIP = "172.21.203.18",
-    [string]$Username = "truenas_admin",
-    [string]$Password = "uppercut%`$##"
+    [string]$BabyNasIP = (Get-EnvVariable "TRUENAS_IP" -Default "172.21.203.18"),
+    [string]$Username = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
+    [string]$Password = (Get-EnvVariable "TRUENAS_PASSWORD")
 )
 
 Write-Host ""

@@ -54,3 +54,12 @@ monitoring-config.json
 credentials.json
 token.pickle
 *.pickle
+
+# VM runtime output files (cached data, should not be committed)
+vm-ip-output.txt
+vm-status-output.txt
+*-output.txt
+
+# Runtime status files
+*-status.txt
+*-report.txt

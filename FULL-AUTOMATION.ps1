@@ -15,12 +15,15 @@
 # Version: 1.0
 ###############################################################################
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
-    [string]$BabyNasIP = "172.21.203.18",
-    [string]$MainNasIP = "10.0.0.89",
-    [string]$Username = "truenas_admin",
-    [string]$Password = "uppercut%`$##",
-    [string]$AdminUsername = "admin",
+    [string]$BabyNasIP = (Get-EnvVariable "TRUENAS_IP" -Default "172.21.203.18"),
+    [string]$MainNasIP = (Get-EnvVariable "MAIN_NAS_IP" -Default "10.0.0.89"),
+    [string]$Username = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
+    [string]$Password = (Get-EnvVariable "TRUENAS_PASSWORD"),
+    [string]$AdminUsername = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
     [switch]$UnattendedMode,
     [switch]$SkipReplication,
     [switch]$SkipTests

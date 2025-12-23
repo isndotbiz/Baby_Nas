@@ -82,7 +82,7 @@ if (-not $SkipVMCreation) {
 ║  2. TrueNAS installer should have started automatically                 ║
 ║  3. Select: Install/Upgrade                                             ║
 ║  4. Choose the 32GB OS disk (NOT the 6TB drives!)                       ║
-║  5. Set root password: uppercut%`$##                                    ║
+║  5. Set root password: Use TRUENAS_PASSWORD from your .env file         ║
 ║  6. Wait for installation to complete (~5-10 minutes)                   ║
 ║  7. Reboot when prompted                                                ║
 ║  8. Note the IP address shown on the console                            ║
@@ -157,7 +157,7 @@ if (-not $SkipConfiguration) {
 ║                  MANUAL STEP: Create ZFS Pool                           ║
 ║                                                                          ║
 ║  1. Open Web UI: https://$BabyNasIP
-║  2. Login: root / uppercut%`$##                                         ║
+║  2. Login: root / [Use TRUENAS_PASSWORD from .env]                      ║
 ║  3. Go to: Storage → Create Pool                                        ║
 ║  4. Configure:                                                           ║
 ║     • Name: tank                                                         ║
@@ -199,8 +199,8 @@ if (-not $SkipConfiguration) {
 ║                                                                          ║
 ║  1. In Web UI: Credentials → Local Users → Add                          ║
 ║  2. Configure:                                                           ║
-║     • Username: truenas_admin                                            ║
-║     • Password: uppercut%`$##                                           ║
+║     • Username: Use TRUENAS_USERNAME from .env (default: root)           ║
+║     • Password: Use TRUENAS_PASSWORD from .env                           ║
 ║     • Full Name: TrueNAS Administrator                                   ║
 ║     • Home: /mnt/tank/home/truenas_admin                                 ║
 ║     • Shell: /usr/bin/bash                                               ║
@@ -248,7 +248,7 @@ if (-not $SkipConfiguration) {
         Write-Host "✓ SMB shares are accessible" -ForegroundColor Green
     } else {
         Write-Host "⚠ Cannot access SMB shares - verify configuration" -ForegroundColor Yellow
-        Write-Host "  Try: net use W: \\$BabyNasIP\WindowsBackup /user:truenas_admin uppercut%`$##" -ForegroundColor Cyan
+        Write-Host "  Try: Load .env first, then use: net use W: \\$BabyNasIP\WindowsBackup /user:`$username `$password" -ForegroundColor Cyan
     }
 
 } else {

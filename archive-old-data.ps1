@@ -43,16 +43,19 @@ Target on Baby NAS:
   Source folders must be accessible on D: drive
 #>
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
     [switch]$DryRun = $true,
     [switch]$Execute,
     [switch]$SkipIntegrityCheck = $false,
     [switch]$AutoCleanup = $false,
-    [string]$NasIP = "172.21.203.18",
+    [string]$NasIP = (Get-EnvVariable "TRUENAS_IP" -Default "172.21.203.18"),
     [string]$NasShare = "backups",
     [string]$ArchiveDate = (Get-Date -Format "yyyy-MM"),
-    [string]$NasUser = "admin",
-    [string]$NasPassword = "uppercut%`$##"
+    [string]$NasUser = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
+    [string]$NasPassword = (Get-EnvVariable "TRUENAS_PASSWORD")
 )
 
 # Override DryRun if Execute is specified

@@ -4,15 +4,18 @@
 # This script generates SSH keys and configures SSH client on Windows
 ###############################################################################
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
     [Parameter(Mandatory=$false)]
-    [string]$TrueNASIP = "",
+    [string]$TrueNASIP = (Get-EnvVariable "TRUENAS_IP"),
 
     [Parameter(Mandatory=$false)]
-    [string]$Username = "jdmal",
+    [string]$Username = (Get-EnvVariable "TRUENAS_USERNAME" -Default "root"),
 
     [Parameter(Mandatory=$false)]
-    [string]$Password = "uppercut%`$##"
+    [string]$Password = (Get-EnvVariable "TRUENAS_PASSWORD")
 )
 
 $ErrorActionPreference = "Stop"

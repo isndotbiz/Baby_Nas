@@ -13,13 +13,28 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Configuration Variables
-POOL_NAME="tank"
-USERNAME="jdmal"
-USER_PASSWORD="uppercut%\$##"
-USER_FULL_NAME="JD Mal"
-USER_EMAIL="jdmal@local"
-USER_UID="3000"
+# Load environment variables from .env file if it exists
+# Note: This file should be transferred to TrueNAS and placed in the same directory as this script
+if [ -f "$(dirname "$0")/.env" ]; then
+    echo -e "${GREEN}Loading environment variables from .env file${NC}"
+    # shellcheck disable=SC1090
+    source "$(dirname "$0")/.env"
+fi
+
+# Configuration Variables (will be overridden by .env if present)
+POOL_NAME="${POOL_NAME:-tank}"
+USERNAME="${TRUENAS_USERNAME:-root}"
+USER_PASSWORD="${TRUENAS_PASSWORD}"
+USER_FULL_NAME="${USER_FULL_NAME:-TrueNAS Admin}"
+USER_EMAIL="${USER_EMAIL:-admin@local}"
+USER_UID="${USER_UID:-3000}"
+
+# Validate that password is set
+if [ -z "$USER_PASSWORD" ]; then
+    echo -e "${RED}ERROR: TRUENAS_PASSWORD is not set${NC}"
+    echo -e "${YELLOW}Please set TRUENAS_PASSWORD environment variable or create a .env file${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}=== TrueNAS SCALE Automated Setup ===${NC}"
 echo "This script will configure your TrueNAS system with optimal settings"

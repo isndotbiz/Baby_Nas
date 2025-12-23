@@ -4,9 +4,12 @@
 # Uploads and executes the complete configuration script
 ###############################################################################
 
-$BabyNasIP = "172.21.203.18"
-$Username = "admin"
-$Password = "uppercut%$##"
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
+$BabyNasIP = Get-EnvVariable "TRUENAS_IP" -Default "172.21.203.18"
+$Username = Get-EnvVariable "TRUENAS_USERNAME" -Default "root"
+$Password = Get-EnvVariable "TRUENAS_PASSWORD"
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan

@@ -4,12 +4,15 @@
 # This script runs the complete setup process from Windows
 ###############################################################################
 
+# Load environment variables from .env file
+. "$PSScriptRoot\Load-EnvFile.ps1"
+
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$TrueNASIP,
+    [Parameter(Mandatory=$false)]
+    [string]$TrueNASIP = (Get-EnvVariable "TRUENAS_IP"),
 
     [Parameter(Mandatory=$false)]
-    [string]$RootPassword = "",
+    [string]$RootPassword = (Get-EnvVariable "TRUENAS_PASSWORD"),
 
     [Parameter(Mandatory=$false)]
     [switch]$SkipTrueNASSetup = $false,
@@ -24,8 +27,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$USERNAME = "jdmal"
-$USER_PASSWORD = "uppercut%`$##"
+$USERNAME = Get-EnvVariable "TRUENAS_USERNAME" -Default "root"
+$USER_PASSWORD = Get-EnvVariable "TRUENAS_PASSWORD"
 $SCRIPT_DIR = $PSScriptRoot
 
 Write-Host @"
