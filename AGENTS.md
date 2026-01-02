@@ -6,6 +6,7 @@
 - Monitoring and automation readmes (`FULL-AUTOMATION*.md`, `MONITORING_AND_AUTOMATION_README.md`, `START_HERE*.md`) document workflow expectations; keep related updates in the same file family.
 - The `veeam/` directory contains Veeam-specific deployment scripts and quick start notes; do not mix general Windows backup changes into that folder.
 - Example configs and state files include `monitoring-config.json`, `SETUP_STATUS.txt`, and `vm-*-output.txt`; treat these as reference, not as secrets.
+- RAG system mirror targets the main NAS at `/mnt/tank/rag-system`; connection details live in `.env.local` and `TRUENAS-RAG-SYNC.md`.
 
 ## Build, Test, and Development Commands
 - Install Python dependencies for API tools: `python -m pip install -r requirements.txt`.
@@ -32,3 +33,4 @@
 ## Security & Configuration Tips
 - Never commit secrets, API keys, or real host IP/passwords; sample creds belong only in parameter defaults. Keep personal configs in `~/.truenas/` and excluded from version control.
 - Validate paths before writing to disks; scripts default to `C:\\Logs` and backup drives (e.g., `X:\\`)—keep these overridable via parameters or config.
+- Store TrueNAS sync credentials in `.env.local`; keep `.env` and `.env.local` out of git.

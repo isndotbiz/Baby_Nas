@@ -269,6 +269,13 @@ Datasets:
 - **Certificates**: Generated automatically by setup scripts
 - **Passphrase**: Optional (can be passwordless for automation)
 
+### RAG System Mirror (Main NAS)
+
+- **Target**: Main NAS (10.0.0.89) `/mnt/tank/rag-system`
+- **Purpose**: Local Baby NAS VM can stage/snapshot before pushing to TrueNAS
+- **Credentials**: Use a dedicated TrueNAS user (recommended: `baby-nas`) with SSH key auth
+- **Config**: Store connection details in `.env.local` and reference `TRUENAS-RAG-SYNC.md`
+
 **Scheduled Tasks (Windows Task Scheduler):**
 - **WSL Backup**: Weekly (Sunday 1:00 AM)
 - **Health Check**: Daily (8:00 AM)
@@ -470,6 +477,7 @@ Datasets:
 - `.env` file not included in version control
 - Credentials rotated quarterly
 - API keys rotated after any compromise
+- `.env.local` holds machine-specific secrets for Baby NAS sync; keep it out of git
 
 ## Version Control
 
