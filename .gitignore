@@ -66,3 +66,9 @@ vm-status-output.txt
 # Runtime status files
 *-status.txt
 *-report.txt
+
+# Backup scripts - logs and restore directories
+backup-scripts/logs/
+*_RESTORE/
+*_restic/
+*_robocopy/
