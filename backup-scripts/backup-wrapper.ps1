@@ -9,7 +9,7 @@ $env:Path = "C:\Tools\restic;$env:Path"
 
 # Retrieve password from 1Password CLI
 try {
-    $env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+    $env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 
     if ([string]::IsNullOrEmpty($env:RESTIC_PASSWORD)) {
         throw "Failed to retrieve password from 1Password"
@@ -20,6 +20,6 @@ try {
 }
 
 # Call the main backup script
-& "$PSScriptRoot\backup-baby-nas.ps1"
+& "$PSScriptRoot\backup-workspace.ps1"
 
 exit $LASTEXITCODE

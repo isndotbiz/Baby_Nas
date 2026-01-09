@@ -2,18 +2,18 @@
 # Check backup integrity and show statistics
 
 param(
-    [string]$RepoPath = "D:\backups\baby_nas_restic"
+    [string]$RepoPath = "D:\backups\workspace_restic"
 )
 
 # Ensure Restic is in PATH for this session
 $env:Path = "C:\Tools\restic;$env:Path"
 
-Write-Host "=== Backup Health Check ===" -ForegroundColor Cyan
+Write-Host "=== Workspace Backup Health Check ===" -ForegroundColor Cyan
 
 # Retrieve password from 1Password
 Write-Host "Retrieving password from 1Password..." -ForegroundColor Yellow
 try {
-    $env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+    $env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
     if ([string]::IsNullOrEmpty($env:RESTIC_PASSWORD)) {
         throw "Failed to retrieve password from 1Password"
     }
@@ -33,5 +33,9 @@ Write-Host "`nVerifying repository integrity..." -ForegroundColor Yellow
 # Show storage statistics
 Write-Host "`nStorage statistics:" -ForegroundColor Yellow
 & restic stats --repo $RepoPath --mode restore-size
+
+# Show raw data stats for deduplication info
+Write-Host "`nRaw data statistics (shows deduplication efficiency):" -ForegroundColor Yellow
+& restic stats --repo $RepoPath --mode raw-data
 
 Write-Host "`n=== Health Check Complete ===" -ForegroundColor Green

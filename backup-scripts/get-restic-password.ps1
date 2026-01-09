@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 
 try {
-    $password = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal 2>&1
+    $password = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal 2>&1
 
     if ($LASTEXITCODE -ne 0) {
         throw "1Password CLI returned error code $LASTEXITCODE"

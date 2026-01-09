@@ -1,12 +1,33 @@
-# Baby NAS Restic Backup Scripts
+# Workspace Restic Backup Scripts
 
-Automated snapshot backups of D:\workspace\baby_nas using Restic with 30-minute intervals.
+Automated snapshot backups of **D:\workspace** (entire workspace) using Restic with 30-minute intervals.
 
 **Security:** All passwords stored in 1Password CLI (no hardcoded secrets)
 
+## Backup Scope
+
+| Source | Repository | Description |
+|--------|------------|-------------|
+| D:\workspace | D:\backups\workspace_restic | All workspace projects |
+
+### Excluded Patterns
+
+The backup automatically excludes:
+- **Version Control:** `.git`, `.svn`, `.hg` (already versioned)
+- **Node.js:** `node_modules`, `.npm`, `.yarn`, `.pnpm-store`
+- **Python:** `__pycache__`, `.venv`, `venv`, `.tox`, `.pytest_cache`, `*.pyc`
+- **Build Outputs:** `bin`, `obj`, `dist`, `out`, `target`, `build`
+- **IDE Files:** `.idea`, `.vs`, `.vscode/settings.json`
+- **Cache/Temp:** `.cache`, `.next`, `.nuxt`, `*.tmp`, `*.log`
+- **Large Binaries:** `*.iso`, `*.vhdx`, `*.vmdk`
+- **AI Models:** `*.gguf`, `*.safetensors`, `*.pt`, `*.onnx`
+- **Secrets:** `.env`, `*.pem`, `*.key`
+
+See `backup-workspace.ps1` for the complete exclusion list.
+
 ## Quick Start
 
-### 1. Install Restic
+### 1. Install Restic (if not already installed)
 
 ```powershell
 # Download from https://github.com/restic/restic/releases
@@ -14,38 +35,31 @@ Automated snapshot backups of D:\workspace\baby_nas using Restic with 30-minute 
 # Add to PATH or use full path
 ```
 
-### 2. Initialize Repository
+### 2. Create 1Password Entry
+
+Create a new item in 1Password:
+- **Item Name:** Workspace Restic Backup
+- **Vault:** TrueNAS Infrastructure
+- **Password:** (generate a strong password)
+
+### 3. Initialize Repository
 
 ```powershell
-# Set password (use a strong password!)
-$env:RESTIC_PASSWORD = "YourSecurePassword123!"
-
 # Create backup location
-New-Item -ItemType Directory -Path "D:\backups\baby_nas_restic" -Force
+New-Item -ItemType Directory -Path "D:\backups\workspace_restic" -Force
+
+# Set password from 1Password
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 
 # Initialize repository
-restic init --repo D:\backups\baby_nas_restic
+restic init --repo D:\backups\workspace_restic
 ```
-
-### 3. Store Password in 1Password (REQUIRED)
-
-Password is already stored in 1Password:
-- **Item:** BabyNAS Restic Backup
-- **Vault:** TrueNAS Infrastructure
-- **Password:** `BabyNAS-Restic-2026-SecureBackup!`
-
-To verify:
-```powershell
-op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
-```
-
-See [1PASSWORD-SETUP.md](1PASSWORD-SETUP.md) for full details.
 
 ### 4. Run First Backup
 
 ```powershell
 # Test backup manually
-.\backup-baby-nas.ps1
+.\backup-wrapper.ps1
 
 # Check logs
 Get-Content .\logs\backup_*.log | Select-Object -Last 50
@@ -62,13 +76,12 @@ Get-Content .\logs\backup_*.log | Select-Object -Last 50
 
 | Script | Purpose |
 |--------|---------|
-| `backup-baby-nas.ps1` | Main backup script with retention policy |
+| `backup-workspace.ps1` | Main backup script with retention policy and exclusions |
 | `backup-wrapper.ps1` | Wrapper that retrieves password from 1Password |
-| `restore-baby-nas.ps1` | Restore snapshots with safety checks |
+| `restore-workspace.ps1` | Restore snapshots with safety checks |
 | `verify-backup-health.ps1` | Check integrity and show stats |
 | `create-backup-task.ps1` | Create scheduled task (30-min intervals) |
 | `get-restic-password.ps1` | Helper to retrieve password from 1Password |
-| `1PASSWORD-SETUP.md` | 1Password integration documentation |
 
 ## Common Operations
 
@@ -76,28 +89,40 @@ Get-Content .\logs\backup_*.log | Select-Object -Last 50
 
 ```powershell
 # Password retrieved automatically from 1Password
-$env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
-restic snapshots --repo D:\backups\baby_nas_restic --tag automated
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+restic snapshots --repo D:\backups\workspace_restic --tag automated
 ```
 
 ### Restore Latest Snapshot
 
 ```powershell
-.\restore-baby-nas.ps1
-# Files restored to D:\workspace\baby_nas_RESTORE
+.\restore-workspace.ps1
+# Files restored to D:\workspace_RESTORE
 ```
 
 ### Restore Specific Snapshot
 
 ```powershell
-.\restore-baby-nas.ps1 -SnapshotId a1b2c3d4
+.\restore-workspace.ps1 -SnapshotId a1b2c3d4
+```
+
+### Restore Single File/Directory
+
+```powershell
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+
+# List files in a snapshot
+restic ls latest --repo D:\backups\workspace_restic
+
+# Restore specific path
+restic restore latest --repo D:\backups\workspace_restic --target D:\restore_temp --include "D:\workspace\MyProject"
 ```
 
 ### Full Rollback (DANGEROUS)
 
 ```powershell
-.\restore-baby-nas.ps1 -OverwriteSource
-# Type 'YES' to confirm
+.\restore-workspace.ps1 -OverwriteSource
+# Type 'YES I UNDERSTAND' to confirm
 ```
 
 ### Check Backup Health
@@ -110,36 +135,40 @@ restic snapshots --repo D:\backups\baby_nas_restic --tag automated
 
 ```powershell
 # View task info
-Get-ScheduledTask -TaskName "BabyNAS-Restic-Backup" | Get-ScheduledTaskInfo
+Get-ScheduledTask -TaskName "Workspace-Restic-Backup" | Get-ScheduledTaskInfo
 
 # View recent logs
 Get-ChildItem .\logs\backup_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 5
 
 # Start task manually (test)
-Start-ScheduledTask -TaskName "BabyNAS-Restic-Backup"
+Start-ScheduledTask -TaskName "Workspace-Restic-Backup"
 ```
 
 ## Retention Policy
 
 Default settings keep:
-- Hourly: 24 (last 24 hours)
-- Daily: 7 (last 7 days)
-- Weekly: 4 (last 4 weeks)
-- Monthly: 6 (last 6 months)
+- **Hourly:** 24 (last 24 hours)
+- **Daily:** 7 (last 7 days)
+- **Weekly:** 4 (last 4 weeks)
+- **Monthly:** 6 (last 6 months)
 
-Edit `backup-baby-nas.ps1` to adjust:
+Edit `backup-workspace.ps1` to adjust:
 
 ```powershell
-.\backup-baby-nas.ps1 -RetentionHours 48 -RetentionDays 14
+.\backup-workspace.ps1 -RetentionHours 48 -RetentionDays 14
 ```
 
 ## Storage Requirements
 
-- First backup: ~100% of source size
-- Incremental snapshots: ~1-5% each (with deduplication)
-- Budget 3x source size for safety
+Estimates based on typical workspace size:
 
-Example: 50GB source = 150GB backup storage
+| Workspace Size | First Backup | 1 Week | 1 Month |
+|----------------|--------------|--------|---------|
+| 10 GB | ~10 GB | ~15 GB | ~25 GB |
+| 50 GB | ~50 GB | ~75 GB | ~125 GB |
+| 100 GB | ~100 GB | ~150 GB | ~250 GB |
+
+Note: Restic deduplication significantly reduces actual storage needed.
 
 ## Troubleshooting
 
@@ -149,10 +178,18 @@ All scripts now retrieve passwords from 1Password automatically.
 
 If you need to manually retrieve:
 ```powershell
-$env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 ```
 
-See [1PASSWORD-SETUP.md](1PASSWORD-SETUP.md) for troubleshooting.
+### 1Password CLI Not Signed In
+
+```powershell
+# Check status
+op account list
+
+# Sign in
+op signin
+```
 
 ### Backup Fails
 
@@ -161,18 +198,24 @@ See [1PASSWORD-SETUP.md](1PASSWORD-SETUP.md) for troubleshooting.
 Get-Content .\logs\backup_*.log | Select-Object -Last 100
 
 # Verify repository
-restic check --repo D:\backups\baby_nas_restic
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+restic check --repo D:\backups\workspace_restic
 ```
 
 ### Disk Space Issues
 
 ```powershell
 # Check repository size
-restic stats --repo D:\backups\baby_nas_restic --mode restore-size
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+restic stats --repo D:\backups\workspace_restic --mode restore-size
 
-# Manually prune old snapshots
-restic forget --repo D:\backups\baby_nas_restic --keep-hourly 12 --prune
+# Manually prune old snapshots (more aggressive)
+restic forget --repo D:\backups\workspace_restic --keep-hourly 12 --keep-daily 3 --prune
 ```
+
+### Backup Taking Too Long
+
+Consider adding more exclusions in `backup-workspace.ps1` or running less frequently.
 
 ## Security Notes
 
@@ -181,4 +224,18 @@ restic forget --repo D:\backups\baby_nas_restic --keep-hourly 12 --prune
 - Restic repositories are encrypted at rest (AES-256)
 - Backup scripts automatically retrieve password from 1Password
 - No passwords stored in environment variables or files
-- See [1PASSWORD-SETUP.md](1PASSWORD-SETUP.md) for security details
+- Sensitive files (`.env`, `*.key`) are excluded from backups
+
+## Migration from BabyNAS Backup
+
+If you previously used the BabyNAS-only backup:
+
+1. The old repository at `D:\backups\baby_nas_restic` is preserved
+2. A new repository at `D:\backups\workspace_restic` is used
+3. Old scheduled task `BabyNAS-Restic-Backup` is removed when running `create-backup-task.ps1`
+4. New task `Workspace-Restic-Backup` covers all of D:\workspace
+
+To remove old repository after verifying new backups work:
+```powershell
+Remove-Item -Recurse -Force D:\backups\baby_nas_restic
+```

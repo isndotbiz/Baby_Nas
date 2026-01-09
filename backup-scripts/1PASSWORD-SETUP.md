@@ -1,36 +1,40 @@
-# 1Password CLI Integration - Setup Complete
+# 1Password CLI Integration - Workspace Backup
 
 ## Overview
 
-All Restic backup passwords are now stored in **1Password** instead of hardcoded in scripts.
+All Restic backup passwords are stored in **1Password** instead of hardcoded in scripts.
 
 ## 1Password Item Details
 
-- **Item Name:** BabyNAS Restic Backup
-- **Item ID:** lnlllusdtcha2jczvzglf5qzji
+**New Item (for workspace backup):**
+- **Item Name:** Workspace Restic Backup
 - **Vault:** TrueNAS Infrastructure
 - **Category:** Password
-- **Tags:** backup, restic, baby-nas
-- **Password:** `BabyNAS-Restic-2026-SecureBackup!`
+- **Tags:** backup, restic, workspace
+- **Password:** (generate a strong password)
+
+**Note:** You need to create this item in 1Password before the backup will work.
 
 ## How It Works
 
-All backup scripts now retrieve the Restic password from 1Password using the CLI:
+All backup scripts retrieve the Restic password from 1Password using the CLI:
 
 ```powershell
-$env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" `
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" `
     --vault "TrueNAS Infrastructure" `
     --fields password `
     --reveal
 ```
 
-## Scripts Updated
+## Scripts Using 1Password
 
-The following scripts now use 1Password:
+The following scripts use 1Password for password retrieval:
 
 1. **backup-wrapper.ps1** - Main scheduled task wrapper
-2. **restore-baby-nas.ps1** - Restore utility
-3. **verify-backup-health.ps1** - Health check script
+2. **backup-workspace.ps1** - Main backup script
+3. **restore-workspace.ps1** - Restore utility
+4. **verify-backup-health.ps1** - Health check script
+5. **get-restic-password.ps1** - Helper script
 
 ## Prerequisites
 
@@ -45,24 +49,40 @@ op --version
 ```powershell
 # Check sign-in status
 op account list
-# Should show: my.1password.com, admin@isn.biz
+# Should show your 1Password account
+```
+
+## Creating the 1Password Item
+
+### Option 1: Via 1Password Desktop App
+1. Open 1Password
+2. Select "TrueNAS Infrastructure" vault
+3. Create new Password item
+4. Name: "Workspace Restic Backup"
+5. Generate a strong password (24+ characters)
+6. Add tags: backup, restic, workspace
+
+### Option 2: Via 1Password CLI
+```powershell
+# Generate a secure password and create item
+op item create --category=password --title="Workspace Restic Backup" --vault="TrueNAS Infrastructure" --generate-password=24,letters,digits,symbols
 ```
 
 ## Manual Password Retrieval
 
 ### Get Password
 ```powershell
-op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 ```
 
 ### Get Full Item Details
 ```powershell
-op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure"
+op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure"
 ```
 
 ### Update Password (If Needed)
 ```powershell
-op item edit "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" password="NewPassword"
+op item edit "Workspace Restic Backup" --vault "TrueNAS Infrastructure" password="NewPassword"
 ```
 
 ## Benefits of 1Password Integration
@@ -75,15 +95,20 @@ op item edit "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" password="
 
 ## Testing 1Password Integration
 
+### Test Password Retrieval
+```powershell
+op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+```
+
 ### Test Backup
 ```powershell
-cd D:\workspace\baby_nas\backup-scripts
+cd D:\workspace\Baby_Nas\backup-scripts
 .\backup-wrapper.ps1
 ```
 
 ### Test Restore
 ```powershell
-.\restore-baby-nas.ps1
+.\restore-workspace.ps1 -DryRun
 ```
 
 ### Test Health Check
@@ -98,7 +123,7 @@ All scripts should:
 
 ## Scheduled Task Integration
 
-The scheduled task **BabyNAS-Restic-Backup** uses `backup-wrapper.ps1` which:
+The scheduled task **Workspace-Restic-Backup** uses `backup-wrapper.ps1` which:
 1. Sets Restic in PATH
 2. Retrieves password from 1Password
 3. Calls main backup script
@@ -116,6 +141,12 @@ The scheduled task **BabyNAS-Restic-Backup** uses `backup-wrapper.ps1` which:
 op signin
 ```
 
+### Error: "item not found"
+
+**Cause:** The 1Password item doesn't exist yet
+
+**Fix:** Create the item (see "Creating the 1Password Item" above)
+
 ### Error: "restic.exe not found in PATH"
 
 **Cause:** Restic not in system PATH
@@ -131,7 +162,7 @@ op signin
 ### Test 1Password Access
 ```powershell
 # This should return the password
-op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 ```
 
 ## Security Notes
@@ -148,49 +179,48 @@ If 1Password is unavailable, you can temporarily set the password:
 
 ```powershell
 # Temporary - for emergency use only
-$env:RESTIC_PASSWORD = "BabyNAS-Restic-2026-SecureBackup!"
-restic snapshots --repo D:\backups\baby_nas_restic
+# Get password from 1Password desktop app first
+$env:RESTIC_PASSWORD = "your-password-here"
+restic snapshots --repo D:\backups\workspace_restic
 ```
 
-## Files Modified
+## Files Using 1Password
 
 ```
 backup-scripts/
-├── backup-wrapper.ps1           Now retrieves from 1Password
-├── restore-baby-nas.ps1         Now retrieves from 1Password
-├── verify-backup-health.ps1     Now retrieves from 1Password
-├── get-restic-password.ps1      NEW: Helper script for password retrieval
-└── 1PASSWORD-SETUP.md           This file
+    backup-wrapper.ps1           Retrieves from 1Password
+    backup-workspace.ps1         Main backup (uses env var from wrapper)
+    restore-workspace.ps1        Retrieves from 1Password
+    verify-backup-health.ps1     Retrieves from 1Password
+    get-restic-password.ps1      Helper script for password retrieval
+    1PASSWORD-SETUP.md           This file
 ```
 
-## No Hardcoded Passwords
+## Secure Password Handling
 
 **Before (Insecure):**
 ```powershell
-$env:RESTIC_PASSWORD = "BabyNAS-Restic-2026-SecureBackup!"
+$env:RESTIC_PASSWORD = "hardcoded-password-here"
 ```
 
 **After (Secure):**
 ```powershell
-$env:RESTIC_PASSWORD = & op item get "BabyNAS Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
+$env:RESTIC_PASSWORD = & op item get "Workspace Restic Backup" --vault "TrueNAS Infrastructure" --fields password --reveal
 ```
 
-## Backup Verification
+## Migration from BabyNAS Backup
 
-All backups completed successfully with 1Password integration:
+The old 1Password item "BabyNAS Restic Backup" is preserved for the old repository.
 
-```
-Recent snapshots:
-ID        Time                 Host             Tags        Size
---------------------------------------------------------------------------------------------
-e1a0cbab  2026-01-07 20:20:36  DESKTOP-RYZ3900  automated   2.712 MB
-6fa1ddf1  2026-01-07 20:36:31  DESKTOP-RYZ3900  automated   2.721 MB
-```
+| Old | New |
+|-----|-----|
+| BabyNAS Restic Backup | Workspace Restic Backup |
+| D:\backups\baby_nas_restic | D:\backups\workspace_restic |
 
-Health check: **no errors were found**
+You can keep both items if you need to access old backups.
 
 ---
 
-**1Password Integration Completed:** 2026-01-07 8:36 PM
+**1Password Integration Updated:** 2026-01-08
 **1Password CLI Version:** 2.31.1
-**All Scripts Tested:** PASS ✓
+**Backup Scope:** D:\workspace (full workspace)
