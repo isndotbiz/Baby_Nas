@@ -100,9 +100,10 @@ try {
 
     # Build robocopy arguments as a single string (avoids quoting issues with Start-Process)
     $excludeDirs = @(
-        "node_modules", ".git", "__pycache__", ".venv", "venv",
+        "node_modules", ".git", "__pycache__", ".venv", "venv", "venv-*",
         ".next", "dist", "build", ".cache", "*.egg-info",
-        ".idea", ".vs", "obj", "bin", "target", ".gradle"
+        ".idea", ".vs", "obj", "bin", "target", ".gradle",
+        ".mypy_cache", ".ruff_cache", ".pytest_cache", ".tox"
     )
     $excludeFiles = @(
         "*.pyc", "*.pyo", "*.tmp", "*.log", "*.bak",
