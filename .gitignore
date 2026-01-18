@@ -72,3 +72,11 @@ backup-scripts/logs/
 *_RESTORE/
 *_restic/
 *_robocopy/
+
+# Serena AI assistant cache and memories (may contain sensitive info)
+.serena/cache/
+.serena/memories/
+
+# VM runtime logs
+vm-ip-log.txt
+vm-startup-log.txt
