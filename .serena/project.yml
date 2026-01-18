@@ -1,0 +1,88 @@
+# Serena Project Configuration Template
+# Copy this to .serena/project.yml in your new project
+
+# Languages - adjust based on your project
+# Available: python, bash, yaml, typescript, cpp, java, go, rust, etc.
+languages:
+- python
+- bash
+- yaml
+
+# File encoding
+encoding: "utf-8"
+
+# Respect gitignore
+ignore_all_files_in_gitignore: true
+
+# Paths to ignore (extend as needed)
+ignored_paths:
+  # Python
+  - "__pycache__"
+  - "**/__pycache__"
+  - "*.pyc"
+  - "*.pyo"
+  - ".venv"
+  - "venv"
+  - ".pytest_cache"
+  - ".mypy_cache"
+  - ".ruff_cache"
+  - "dist"
+  - "build"
+  - "*.egg-info"
+
+  # Node.js
+  - "node_modules"
+  - ".npm"
+  - ".yarn"
+
+  # IDE
+  - ".vscode"
+  - ".idea"
+  - "*.swp"
+  - ".DS_Store"
+
+  # Logs and temp
+  - "*.log"
+  - "logs"
+  - "tmp"
+  - "temp"
+
+  # Backups
+  - "*.bak"
+  - "backup-*"
+
+  # Large binaries (customize for your project)
+  - "*.bin"
+  - "*.pkl"
+
+# Read-only mode (set to true for production/audit)
+read_only: false
+
+# No tools excluded by default
+excluded_tools: []
+
+# Enable summarize_changes for session handoff
+included_optional_tools:
+  - summarize_changes
+
+# Initial prompt shown on project activation
+initial_prompt: |
+  # Baby_Nas Project
+
+  ## Quick Start
+  1. Load `quick_reference` for paths/commands
+  2. Load `tool_usage_patterns` for Serena tool guidance
+  3. Load task-specific memory as needed
+
+  ## Key Rules
+  - Use planning mode for complex multi-step changes
+  - Use symbol-level tools when possible (find_symbol, replace_symbol_body)
+  - Spawn parallel agents for multi-file operations
+
+  ## Troubleshooting
+  - LSP issues: Use restart_language_server tool
+  - Load `troubleshooting` memory for common issues
+
+# Project name (auto-detected if not set)
+project_name: "Baby_Nas"
+

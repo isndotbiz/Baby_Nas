@@ -1,0 +1,7 @@
+# Serena cache and logs
+cache/
+logs/
+*.log
+
+# Keep memories in git
+!memories/
