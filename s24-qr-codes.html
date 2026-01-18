@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S24 Baby NAS Setup - QR Codes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .qr-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .credentials {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .step::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .qr-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 Samsung S24 → Baby NAS Backup Setup</h1>
+
+    <div class="qr-section">
+        <h2>Step 1: Install Tailscale</h2>
+        <div class="qr-code">
+            <p><strong>Scan to install Tailscale from Play Store:</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://play.google.com/store/apps/details?id=com.tailscale.ipn" alt="Tailscale QR Code">
+            <p><small>Or search "Tailscale" in Play Store</small></p>
+        </div>
+    </div>
+
+    <div class="qr-section">
+        <h2>Step 2: Login to Tailscale</h2>
+        <div class="qr-code">
+            <p><strong>Scan to open Tailscale login:</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://login.tailscale.com" alt="Tailscale Login QR Code">
+        </div>
+        <div class="info">
+            <p><strong>Login with:</strong> jdmallin25x40@gmail.com</p>
+            <p>After login, your S24 will be connected to your private network!</p>
+        </div>
+    </div>
+
+    <div class="qr-section">
+        <h2>Step 3: Install File Manager App</h2>
+        <div class="qr-code">
+            <p><strong>Option A: Solid Explorer (Recommended)</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://play.google.com/store/apps/details?id=pl.solidexplorer2" alt="Solid Explorer QR Code">
+        </div>
+        <div class="qr-code">
+            <p><strong>Option B: FolderSync (For Auto-Backup)</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://play.google.com/store/apps/details?id=dk.tacit.android.foldersync.lite" alt="FolderSync QR Code">
+        </div>
+    </div>
+
+    <div class="qr-section">
+        <h2>Step 4: Connection Credentials</h2>
+        <div class="credentials">
+            <p><strong>Server:</strong> 100.95.3.18</p>
+            <p><strong>Username:</strong> smbuser</p>
+            <p><strong>Password:</strong> YICcA3DO62p4LCmsI0gfYookyhTplp1wygicQEXe</p>
+            <p><strong>Path:</strong> /phone-backups/samsung-s24</p>
+        </div>
+        <div class="info">
+            <p><strong>📋 Copy these into your file manager app</strong></p>
+            <p>In Solid Explorer: Menu → Storage → + → LAN/SMB</p>
+            <p>In FolderSync: Accounts → Add Account → SMB</p>
+        </div>
+    </div>
+
+    <div class="qr-section">
+        <h2>Quick Setup Steps</h2>
+        <div class="step">Install Tailscale app</div>
+        <div class="step">Login with your Google account</div>
+        <div class="step">Install Solid Explorer or FolderSync</div>
+        <div class="step">Add SMB connection using credentials above</div>
+        <div class="step">Browse to your backup folder</div>
+        <div class="step">Start backing up photos!</div>
+    </div>
+
+    <div class="qr-section">
+        <h2>📊 Your Backup Info</h2>
+        <div class="info">
+            <p><strong>Tailscale IP:</strong> 100.103.5.63 (your phone)</p>
+            <p><strong>Baby NAS IP:</strong> 100.95.3.18</p>
+            <p><strong>Storage Quota:</strong> 500GB for your backups</p>
+            <p><strong>Current Usage:</strong> ~1MB (empty - ready for your photos!)</p>
+        </div>
+    </div>
+
+    <div class="qr-section">
+        <h2>🔗 Full Setup Guide</h2>
+        <div class="qr-code">
+            <p><strong>Scan for complete setup instructions:</strong></p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://github.com/isndotbiz/Baby_Nas/blob/master/S24-BACKUP-SETUP.md" alt="Full Guide QR Code">
+            <p><small>Complete guide with troubleshooting and advanced options</small></p>
+        </div>
+    </div>
+
+    <div class="qr-section" style="background: #f0f0f0; border: 2px dashed #666;">
+        <h2>💡 Pro Tip: Save This Page</h2>
+        <p>📱 <strong>Take a screenshot</strong> of this page for easy reference later!</p>
+        <p>🖨️ <strong>Or print it</strong> to keep credentials handy</p>
+    </div>
+
+</body>
+</html>
