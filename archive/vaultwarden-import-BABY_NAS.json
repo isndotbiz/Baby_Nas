@@ -1,0 +1,62 @@
+{
+  "encrypted": false,
+  "organizations": [],
+  "folders": [],
+  "items": [
+    {
+      "id": "babynas-smb-001",
+      "organizationId": "1a4d4b38-c293-4d05-aad1-f9a037483338",
+      "type": 2,
+      "name": "BabyNAS-SMB",
+      "notes": "{\n  \"ip\": \"192.168.215.2\",\n  \"hostname\": \"baby.isn.biz\",\n  \"protocol\": \"smb\",\n  \"shares\": [\"backups\", \"veeam\", \"wsl-backups\", \"phone\", \"media\"],\n  \"username\": \"jdmal\",\n  \"description\": \"BabyNAS SMB file shares for backup storage\"\n}",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "babynas-api-002",
+      "organizationId": "1a4d4b38-c293-4d05-aad1-f9a037483338",
+      "type": 2,
+      "name": "BabyNAS-API",
+      "notes": "{\n  \"ip\": \"192.168.215.2\",\n  \"hostname\": \"baby.isn.biz\",\n  \"api_url\": \"http://192.168.215.2/api/v2.0\",\n  \"api_key\": \"1-VkZdCiOTla5o0cs2lDBocRiTS14RIGDPchTiSVg2Hflt1AcmBzYzJiBuJLkOTI9A\",\n  \"root_password\": \"74108520\",\n  \"description\": \"BabyNAS TrueNAS REST API credentials\"\n}",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "babynas-ssh-003",
+      "organizationId": "1a4d4b38-c293-4d05-aad1-f9a037483338",
+      "type": 2,
+      "name": "BabyNAS-SSH",
+      "notes": "{\n  \"hostname\": \"baby.isn.biz\",\n  \"ip\": \"192.168.215.2\",\n  \"ssh_user\": \"jdmal\",\n  \"ssh_key_path\": \"~/.ssh/id_ed25519\",\n  \"ssh_port\": 22,\n  \"description\": \"BabyNAS SSH key authentication for jdmal user\"\n}",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "zfs-replication-004",
+      "organizationId": "1a4d4b38-c293-4d05-aad1-f9a037483338",
+      "type": 2,
+      "name": "ZFS-Replication",
+      "notes": "{\n  \"source_host\": \"192.168.215.2\",\n  \"source_user\": \"root\",\n  \"target_host\": \"10.0.0.89\",\n  \"target_user\": \"baby-nas\",\n  \"ssh_key_path\": \"D:\\\\workspace\\\\Baby_Nas\\\\keys\\\\baby-nas-replication\",\n  \"ssh_pubkey\": \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPwjIxc7vunMCVBfIGsOXr1xwQ9mLLTLA58ztyd5gUSC baby-nas-replication\",\n  \"datasets\": [\"tank/backups\", \"tank/veeam\", \"tank/wsl-backups\", \"tank/media\", \"tank/phone\"],\n  \"schedule\": \"daily\",\n  \"description\": \"BabyNAS to Main NAS ZFS replication credentials\"\n}",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      }
+    },
+    {
+      "id": "storage-pool-005",
+      "organizationId": "1a4d4b38-c293-4d05-aad1-f9a037483338",
+      "type": 2,
+      "name": "StoragePool-Config",
+      "notes": "{\n  \"pool_name\": \"tank\",\n  \"pool_type\": \"RAIDZ1\",\n  \"data_vdevs\": [\"/dev/disk/by-id/ata-HDD1\", \"/dev/disk/by-id/ata-HDD2\", \"/dev/disk/by-id/ata-HDD3\"],\n  \"slog_vdev\": \"250GB SSD\",\n  \"l2arc_vdev\": \"256GB SSD\",\n  \"compression\": \"lz4\",\n  \"recordsize\": \"1M\",\n  \"description\": \"BabyNAS ZFS pool configuration\"\n}",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      }
+    }
+  ]
+}

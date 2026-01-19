@@ -1,0 +1,130 @@
+VAULTWARDEN SETUP - 5 MINUTE MANUAL PROCESS
+============================================================
+
+STEP 1: Open Browser
+  https://vault.isn.biz
+
+STEP 2: Login
+  Email: BABY_NAS@ISN.BIZ
+  Password: [use the one you created]
+  Click Login
+
+STEP 3: You should see BABY_NAS organization selected
+
+STEP 4: Click "+ New Item" button
+
+STEP 5: Select "Secure Note" type
+
+STEP 6: Create 5 items (copy-paste the title and JSON below)
+
+============================================================
+ITEM 1: BabyNAS-SMB
+============================================================
+Title: BabyNAS-SMB
+
+Notes (paste this exactly):
+{
+  "ip": "192.168.215.2",
+  "hostname": "baby.isn.biz",
+  "protocol": "smb",
+  "shares": ["backups", "veeam", "wsl-backups", "phone", "media"],
+  "username": "jdmal",
+  "description": "BabyNAS SMB file shares for backup storage"
+}
+
+Click Save
+
+============================================================
+ITEM 2: BabyNAS-API
+============================================================
+Title: BabyNAS-API
+
+Notes (paste this exactly):
+{
+  "ip": "192.168.215.2",
+  "hostname": "baby.isn.biz",
+  "api_url": "http://192.168.215.2/api/v2.0",
+  "api_key": "1-VkZdCiOTla5o0cs2lDBocRiTS14RIGDPchTiSVg2Hflt1AcmBzYzJiBuJLkOTI9A",
+  "root_password": "74108520",
+  "description": "BabyNAS TrueNAS REST API credentials"
+}
+
+Click Save
+
+============================================================
+ITEM 3: BabyNAS-SSH
+============================================================
+Title: BabyNAS-SSH
+
+Notes (paste this exactly):
+{
+  "hostname": "baby.isn.biz",
+  "ip": "192.168.215.2",
+  "ssh_user": "jdmal",
+  "ssh_key_path": "~/.ssh/id_ed25519",
+  "ssh_port": 22,
+  "description": "BabyNAS SSH key authentication for jdmal user"
+}
+
+Click Save
+
+============================================================
+ITEM 4: ZFS-Replication
+============================================================
+Title: ZFS-Replication
+
+Notes (paste this exactly):
+{
+  "source_host": "192.168.215.2",
+  "source_user": "root",
+  "target_host": "10.0.0.89",
+  "target_user": "baby-nas",
+  "ssh_key_path": "D:\\workspace\\Baby_Nas\\keys\\baby-nas-replication",
+  "ssh_pubkey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPwjIxc7vunMCVBfIGsOXr1xwQ9mLLTLA58ztyd5gUSC baby-nas-replication",
+  "datasets": ["tank/backups", "tank/veeam", "tank/wsl-backups", "tank/media", "tank/phone"],
+  "schedule": "daily",
+  "description": "BabyNAS to Main NAS ZFS replication credentials"
+}
+
+Click Save
+
+============================================================
+ITEM 5: StoragePool-Config
+============================================================
+Title: StoragePool-Config
+
+Notes (paste this exactly):
+{
+  "pool_name": "tank",
+  "pool_type": "RAIDZ1",
+  "data_vdevs": ["/dev/disk/by-id/ata-HDD1", "/dev/disk/by-id/ata-HDD2", "/dev/disk/by-id/ata-HDD3"],
+  "slog_vdev": "250GB SSD",
+  "l2arc_vdev": "256GB SSD",
+  "compression": "lz4",
+  "recordsize": "1M",
+  "description": "BabyNAS ZFS pool configuration"
+}
+
+Click Save
+
+============================================================
+VERIFY: After creating all 5 items
+============================================================
+
+In PowerShell, run:
+  python vaultwarden-credential-manager.py list
+
+Should show:
+  [OK] Found 5 credential entries:
+    - BabyNAS-SMB
+    - BabyNAS-API
+    - BabyNAS-SSH
+    - ZFS-Replication
+    - StoragePool-Config
+
+If you see all 5, you're DONE!
+
+============================================================
+TIME: 5-10 minutes total
+DIFFICULTY: Very easy (just copy-paste)
+============================================================

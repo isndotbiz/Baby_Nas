@@ -1,0 +1,218 @@
+===============================================================================
+ENABLE ENCRYPTION ON ALL DATASETS & ADD JDMAL PERMISSIONS
+===============================================================================
+
+STEP 1: SSH INTO BABYNAS AS ROOT
+───────────────────────────────────────────────────────────────────────────
+
+Open PowerShell and run:
+  ssh root@192.168.215.2
+
+Password: 74108520
+
+Once connected, run all commands below in sequence.
+
+===============================================================================
+STEP 2: CREATE ENCRYPTED DATASETS (Run on BabyNAS SSH)
+───────────────────────────────────────────────────────────────────────────
+
+# First, check current datasets
+zfs list
+
+# Create encrypted versions of each dataset
+# (You'll be prompted to set an encryption passphrase for each)
+
+zfs create -o encryption=on -o keyformat=passphrase tank/backups_encrypted
+zfs create -o encryption=on -o keyformat=passphrase tank/veeam_encrypted
+zfs create -o encryption=on -o keyformat=passphrase tank/wsl-backups_encrypted
+zfs create -o encryption=on -o keyformat=passphrase tank/media_encrypted
+zfs create -o encryption=on -o keyformat=passphrase tank/phone_encrypted
+zfs create -o encryption=on -o keyformat=passphrase tank/home_encrypted
+
+Note: Use same passphrase for all (e.g., "BabyNAS2026Secure")
+
+===============================================================================
+STEP 3: CONFIGURE ENCRYPTED DATASETS (Run on BabyNAS SSH)
+───────────────────────────────────────────────────────────────────────────
+
+# Set recordsize and compression for optimal performance
+
+# Backups (1M recordsize for sequential backups)
+zfs set recordsize=1M tank/backups_encrypted
+zfs set compression=lz4 tank/backups_encrypted
+zfs set atime=off tank/backups_encrypted
+
+# Veeam (same as backups)
+zfs set recordsize=1M tank/veeam_encrypted
+zfs set compression=lz4 tank/veeam_encrypted
+zfs set atime=off tank/veeam_encrypted
+
+# WSL Backups (same as backups)
+zfs set recordsize=1M tank/wsl-backups_encrypted
+zfs set compression=lz4 tank/wsl-backups_encrypted
+zfs set atime=off tank/wsl-backups_encrypted
+
+# Media (same)
+zfs set recordsize=1M tank/media_encrypted
+zfs set compression=lz4 tank/media_encrypted
+zfs set atime=off tank/media_encrypted
+
+# Phone (128K for mixed file sizes)
+zfs set recordsize=128K tank/phone_encrypted
+zfs set compression=lz4 tank/phone_encrypted
+zfs set atime=off tank/phone_encrypted
+
+# Home (128K for general use)
+zfs set recordsize=128K tank/home_encrypted
+zfs set compression=lz4 tank/home_encrypted
+zfs set atime=off tank/home_encrypted
+
+===============================================================================
+STEP 4: ADD JDMAL PERMISSIONS TO ENCRYPTED DATASETS (Run on BabyNAS SSH)
+───────────────────────────────────────────────────────────────────────────
+
+# Grant jdmal user permissions on all encrypted datasets
+# Permissions: create, receive, rollback, destroy, mount, snapshot, hold, release
+
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/backups_encrypted
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/veeam_encrypted
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/wsl-backups_encrypted
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/media_encrypted
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/phone_encrypted
+zfs allow -u jdmal create,receive,rollback,destroy,mount,snapshot,hold,release tank/home_encrypted
+
+===============================================================================
+STEP 5: CREATE SMB SHARES FOR ENCRYPTED DATASETS (Optional - via Web UI)
+───────────────────────────────────────────────────────────────────────────
+
+For each encrypted dataset, create SMB shares:
+  Web UI: http://192.168.215.2
+  Storage → Shares → SMB
+
+Create shares:
+  - backups_encrypted    (\\baby.isndotbiz.com\backups_encrypted)
+  - veeam_encrypted      (\\baby.isndotbiz.com\veeam_encrypted)
+  - wsl-backups_encrypted
+  - media_encrypted
+  - phone_encrypted
+  - home_encrypted
+
+Access: jdmal (password from setup)
+
+===============================================================================
+STEP 6: MIGRATE DATA FROM OLD TO NEW ENCRYPTED DATASETS (Optional)
+───────────────────────────────────────────────────────────────────────────
+
+Only if you had existing data in old datasets:
+
+# On Windows (PowerShell):
+robocopy "\\192.168.215.2\backups" "\\192.168.215.2\backups_encrypted" /MIR /COPY:DAT /R:3 /W:10
+
+# On Linux/Mac (rsync):
+rsync -av --delete /mnt/tank/backups/ /mnt/tank/backups_encrypted/
+
+Repeat for each dataset.
+
+===============================================================================
+STEP 7: VERIFY ENCRYPTION (Run on BabyNAS SSH)
+───────────────────────────────────────────────────────────────────────────
+
+# List all datasets with encryption status
+zfs list -o name,encryption,encrypted,recordsize,compression
+
+# Should show:
+# NAME                         ENCRYPTION  ENCRYPTED  RECORDSIZE  COMPRESSION
+# tank                         off         -          128K        lz4
+# tank/backups_encrypted       on          yes        1M          lz4
+# tank/veeam_encrypted         on          yes        1M          lz4
+# ... etc
+
+# Verify jdmal permissions
+zfs allow | grep jdmal
+
+===============================================================================
+STEP 8: TEST JDMAL ACCESS (Run on Windows)
+───────────────────────────────────────────────────────────────────────────
+
+# Test SSH access
+ssh jdmal@192.168.215.2
+
+# Test SMB access
+net use Z: "\\baby.isndotbiz.com\backups_encrypted" /user:jdmal /persistent:yes
+
+# You should be able to access the encrypted shares
+
+===============================================================================
+STEP 9: UPDATE SNAPSHOT TASKS (Run on BabyNAS Web UI)
+───────────────────────────────────────────────────────────────────────────
+
+If you had snapshot tasks on old datasets, update them:
+  Data Protection → Snapshots → Edit each task
+  Change dataset from "tank/backups" to "tank/backups_encrypted"
+
+Do this for all snapshot tasks.
+
+===============================================================================
+STEP 10: UPDATE REPLICATION TASKS (Run on BabyNAS Web UI)
+───────────────────────────────────────────────────────────────────────────
+
+If you had replication tasks on old datasets, update them:
+  Data Protection → Replication → Edit each task
+  Change source dataset from "tank/backups" to "tank/backups_encrypted"
+
+Do this for all replication tasks targeting Main NAS.
+
+===============================================================================
+OPTIONAL: DELETE OLD UNENCRYPTED DATASETS (After verification!)
+───────────────────────────────────────────────────────────────────────────
+
+ONLY after verifying new encrypted datasets are working and replication is done:
+
+zfs destroy -r tank/backups
+zfs destroy -r tank/veeam
+zfs destroy -r tank/wsl-backups
+zfs destroy -r tank/media
+zfs destroy -r tank/phone
+zfs destroy -r tank/home
+
+⚠️  WARNING: This deletes all data! Only do this after migration is complete!
+
+===============================================================================
+SUMMARY
+───────────────────────────────────────────────────────────────────────────
+
+✅ All 7 datasets encrypted with AES-256-GCM
+✅ jdmal user has full permissions
+✅ LZ4 compression enabled (automatic)
+✅ Optimal recordsize set (1M for backups, 128K for general)
+✅ Replication ready to new encrypted datasets
+✅ SMB shares accessible to jdmal
+
+Time to complete: ~30 minutes (including passphrases & data migration)
+
+===============================================================================
+TROUBLESHOOTING
+───────────────────────────────────────────────────────────────────────────
+
+If you get "dataset does not exist" errors:
+  - Check spelling of dataset names
+  - Run "zfs list" to see all available datasets
+
+If SMB shares don't appear:
+  - Create them manually via Web UI: Storage → Shares → SMB
+  - Select encrypted_backups dataset
+  - Set user to jdmal
+
+If jdmal can't access encrypted shares:
+  - Verify permissions: zfs allow | grep jdmal
+  - Check SMB user authentication in Web UI
+  - Test with: ssh jdmal@192.168.215.2
+
+If replication fails after encryption:
+  - Update replication task source datasets
+  - Verify replication user has permissions on new datasets
+  - Run replication test from Web UI
+
+===============================================================================
+For help: See D:\workspace\Baby_Nas\COMPLETE-CREDENTIAL-SETUP-SUMMARY.md
+===============================================================================

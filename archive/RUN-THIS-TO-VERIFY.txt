@@ -1,0 +1,173 @@
+================================================================================
+VERIFY ENCRYPTION - Run These Commands on Your Windows Machine
+================================================================================
+
+Open WSL (Windows Subsystem for Linux) and run these commands:
+
+================================================================================
+STEP 1: SSH as baby using SSH key
+================================================================================
+
+ssh -i ~/.ssh/baby-isn-biz baby@192.168.215.2
+
+(If that doesn't work, try the full path to the key file)
+
+NOTE: After network reconfiguration, use 10.0.0.99 instead of 192.168.215.2
+
+
+================================================================================
+STEP 2: Once logged in as baby, run these verification commands
+================================================================================
+
+# 1. Verify you are baby user
+whoami
+id
+
+# 2. List encrypted datasets
+zfs list -o name,encryption,encrypted,recordsize,compression | grep _encrypted
+
+# 3. Check baby has permissions
+zfs allow | grep -A 5 tank/backups_encrypted
+
+# 4. Check mount point access
+ls -la /mnt/tank/ | grep _encrypted
+
+# 5. Verify you can read encrypted dataset
+ls /mnt/tank/backups_encrypted
+
+# 6. Check storage space
+zfs list tank/backups_encrypted
+
+
+================================================================================
+EXPECTED OUTPUT
+================================================================================
+
+[1] whoami should show:
+    baby
+
+[2] id should show:
+    uid=2999(baby) gid=2999(baby) groups=2999(baby)
+
+[3] zfs list should show all 6 datasets with:
+    - encryption=on
+    - encrypted=yes
+    - compression=lz4
+    - recordsize=1M (for backups) or 128K (for phone/home)
+
+Example:
+    NAME                           ENCRYPTION  ENCRYPTED  RECORDSIZE  COMPRESSION
+    tank/backups_encrypted         on          yes        1M          lz4
+    tank/veeam_encrypted           on          yes        1M          lz4
+    tank/wsl-backups_encrypted     on          yes        1M          lz4
+    tank/media_encrypted           on          yes        1M          lz4
+    tank/phone_encrypted           on          yes        128K        lz4
+    tank/home_encrypted            on          yes        128K        lz4
+
+[4] zfs allow should show baby has permissions:
+    create,receive,rollback,destroy,mount,unmount,snapshot,hold,release,send,compression
+
+[5] ls /mnt/tank/backups_encrypted should list files (if any exist)
+
+[6] zfs list should show used space and available space
+
+
+================================================================================
+SUCCESS CRITERIA - All should be TRUE
+================================================================================
+
+✓ You can SSH as baby (not root)
+✓ You are user baby (uid 2999)
+✓ All 6 encrypted datasets exist
+✓ All datasets show encryption=on and encrypted=yes
+✓ All datasets have compression=lz4
+✓ baby has ZFS permissions granted
+✓ Mount points are readable by baby
+✓ You can list files in /mnt/tank/backups_encrypted
+
+
+================================================================================
+IF SOMETHING FAILS
+================================================================================
+
+If you can't SSH as baby:
+  - First run: .\setup-baby-user-complete.ps1 (creates user and SSH key)
+  - SSH key should be at: ~/.ssh/baby-isn-biz
+  - Or use: ssh -i /path/to/baby-isn-biz baby@192.168.215.2
+
+If encryption=off or encrypted=no:
+  - Encryption script wasn't run, or didn't complete
+  - Run: .\RUN-ENCRYPTION-SETUP-NOW.ps1
+
+If "permission denied" on mount points:
+  - baby permissions not granted properly
+  - Run (as root):
+    zfs allow -u baby create,receive,rollback,destroy,mount,unmount,snapshot,hold,release,send,compression tank/backups_encrypted
+    (repeat for other _encrypted datasets)
+
+If datasets don't exist:
+  - Encryption script wasn't run
+  - Run: .\RUN-ENCRYPTION-SETUP-NOW.ps1
+
+
+================================================================================
+COPY-PASTE SCRIPT
+================================================================================
+
+Open WSL and run this entire block:
+
+---BEGIN---
+ssh -i ~/.ssh/baby-isn-biz baby@192.168.215.2 << 'EOF'
+
+echo "=========================================="
+echo "ENCRYPTION VERIFICATION"
+echo "=========================================="
+echo ""
+
+echo "1. User:"
+whoami
+echo ""
+
+echo "2. Encrypted Datasets:"
+zfs list -o name,encryption,encrypted,recordsize,compression | grep _encrypted
+echo ""
+
+echo "3. baby Permissions:"
+zfs allow | grep -B 2 -A 5 "tank/backups_encrypted"
+echo ""
+
+echo "4. Mount Points:"
+ls -ld /mnt/tank/*_encrypted
+echo ""
+
+echo "5. Can Read:"
+ls /mnt/tank/backups_encrypted 2>&1 | head -5
+echo ""
+
+echo "6. Storage:"
+zfs list -o name,used,available tank/backups_encrypted
+echo ""
+
+echo "=========================================="
+echo "VERIFICATION COMPLETE"
+echo "=========================================="
+
+EOF
+---END---
+
+Run that and show me the output!
+
+
+================================================================================
+API VERIFICATION (Optional)
+================================================================================
+
+If you want to verify via API using baby credentials:
+
+ssh -i ~/.ssh/baby-isn-biz baby@192.168.215.2
+
+Then use baby's API key to query TrueNAS API:
+curl -H "Authorization: Bearer <BABY_API_KEY>" https://192.168.215.2/api/v2.0/pool/dataset
+
+
+================================================================================

@@ -1,0 +1,187 @@
+═══════════════════════════════════════════════════════════════════════════════
+VAULTWARDEN CREDENTIAL SHARING - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+VAULTWARDEN URL
+────────────────────────────────────────────────────────────────────────────────
+https://vault.isn.biz
+
+BABY_NAS ORGANIZATION CREDENTIALS
+────────────────────────────────────────────────────────────────────────────────
+Use these to access BabyNAS-related credentials from any Claude Code instance:
+
+  CLIENT_ID:
+  organization.1a4d4b38-c293-4d05-aad1-f9a037483338
+
+  CLIENT_SECRET:
+  lG1GNsHXEmYMnwo58eD0ahGMItdtoh
+
+  FINGERPRINT:
+  unzip-backless-barge-move-exclusive
+
+  GRANT_TYPE:
+  client_credentials
+
+  SCOPE:
+  api.organization
+
+TRUE_NAS ORGANIZATION CREDENTIALS
+────────────────────────────────────────────────────────────────────────────────
+Use these for Main NAS / True_Nas project credentials:
+
+  CLIENT_ID:
+  organization.97735504-4e6e-44bb-8220-5d0178b18ebd
+
+  CLIENT_SECRET:
+  hGjosmX51I6diO7xvjKSM7sCY8Bq1M
+
+  FINGERPRINT:
+  morse-cozily-studied-vivacious-jubilant
+
+
+AVAILABLE VAULT ENTRIES (BABY_NAS ORG)
+────────────────────────────────────────────────────────────────────────────────
+
+1. BabyNAS-SMB
+   └─ IP: 192.168.215.2
+   └─ Hostname: baby.isn.biz
+   └─ Shares: backups, veeam, wsl-backups, phone, media
+   └─ Username: jdmal
+
+2. BabyNAS-API
+   └─ API URL: http://192.168.215.2/api/v2.0
+   └─ API Key: 1-VkZdCiOTla5o0cs2lDBocRiTS14RIGDPchTiSVg2Hflt1AcmBzYzJiBuJLkOTI9A
+   └─ Root Password: [in vault]
+
+3. BabyNAS-SSH
+   └─ Hostname: baby.isn.biz
+   └─ IP: 192.168.215.2
+   └─ SSH User: jdmal
+   └─ SSH Key: ~/.ssh/id_ed25519
+
+4. ZFS-Replication
+   └─ Source: BabyNAS (192.168.215.2)
+   └─ Target: Main NAS (10.0.0.89)
+   └─ Replication User: baby-nas
+   └─ SSH Key: keys/baby-nas-replication
+
+5. StoragePool-Config
+   └─ Pool: tank (RAIDZ1)
+   └─ Disks: 3x 6TB HDDs + 2x SSDs (SLOG + L2ARC)
+   └─ Compression: LZ4
+
+
+SETUP IN NEW CLAUDE CODE INSTANCE
+────────────────────────────────────────────────────────────────────────────────
+
+1. Copy .env.local from existing project:
+   cp D:\workspace\Baby_Nas\.env.local D:\workspace\NewProject\.env.local
+
+2. Or manually add to your .env.local:
+   VAULTWARDEN_URL=https://vault.isn.biz
+   VAULTWARDEN_CLIENT_ID=organization.1a4d4b38-c293-4d05-aad1-f9a037483338
+   VAULTWARDEN_CLIENT_SECRET=lG1GNsHXEmYMnwo58eD0ahGMItdtoh
+   VAULTWARDEN_GRANT_TYPE=client_credentials
+   VAULTWARDEN_SCOPE=api.organization
+
+3. Copy the credential manager script:
+   cp D:\workspace\Baby_Nas\vaultwarden-credential-manager.py D:\workspace\NewProject\
+
+4. Test connection:
+   python vaultwarden-credential-manager.py test
+
+5. Retrieve credentials:
+   python vaultwarden-credential-manager.py get "BabyNAS-SMB"
+   python vaultwarden-credential-manager.py get "BabyNAS-API"
+
+
+USING CREDENTIALS IN SCRIPTS
+────────────────────────────────────────────────────────────────────────────────
+
+PowerShell Example:
+─────────────────
+$smb_creds = (python vaultwarden-credential-manager.py get "BabyNAS-SMB") | ConvertFrom-Json
+$ip = $smb_creds.credentials.ip
+$shares = $smb_creds.credentials.shares
+Write-Host "BabyNAS at $ip with shares: $($shares -join ', ')"
+
+
+Python Example:
+───────────────
+from vaultwarden_credential_manager import VaultwardenCredentialManager
+
+mgr = VaultwardenCredentialManager()
+entry = mgr.get_credential_entry("BabyNAS-SMB")
+print(entry['credentials']['ip'])
+
+
+Bash Example:
+─────────────
+CREDS=$(python vaultwarden-credential-manager.py get "BabyNAS-SSH")
+HOST=$(echo $CREDS | jq -r '.credentials.ip')
+USER=$(echo $CREDS | jq -r '.credentials.ssh_user')
+ssh -i ~/.ssh/id_ed25519 $USER@$HOST
+
+
+BABYNAS QUICK FACTS
+────────────────────────────────────────────────────────────────────────────────
+IP Address:           192.168.215.2
+Hostname:             baby.isn.biz
+SMB Port:             445
+SSH Port:             22
+TrueNAS Web UI:       http://192.168.215.2
+SMB Shares:           \\192.168.215.2\{backups,veeam,wsl-backups,phone,media}
+SSH User (Admin):     jdmal (with Ed25519 key)
+SSH User (Repl):      root (for TrueNAS mgmt)
+ZFS Pool:             tank (RAIDZ1, 3x6TB)
+SLOG:                 250GB SSD
+L2ARC:                256GB SSD
+Compression:          LZ4
+Replication Target:   Main NAS at 10.0.0.89
+
+
+SECURITY REMINDERS
+────────────────────────────────────────────────────────────────────────────────
+✓ DO: Store .env.local credentials in Vaultwarden
+✓ DO: Use OAuth 2.0 Client Credentials
+✓ DO: Keep CLIENT_SECRET secure (treat like password)
+✓ DO: Rotate credentials quarterly
+✓ DO: Add .env.local to .gitignore
+
+✗ DON'T: Commit credentials to git
+✗ DON'T: Share CLIENT_SECRET in plain text
+✗ DON'T: Log full credential values
+✗ DON'T: Hardcode credentials in scripts
+
+
+TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────────
+
+Connection Fails:
+  - Check VAULTWARDEN_URL: https://vault.isn.biz
+  - Verify CLIENT_ID matches your organization
+  - Confirm CLIENT_SECRET hasn't been rotated
+  - Test: curl -s https://vault.isn.biz/health
+
+Entry Not Found:
+  - List all entries: python vaultwarden-credential-manager.py list
+  - Check exact spelling (case-sensitive)
+  - Verify you're using correct .env.local for that org
+
+SSL Certificate Errors:
+  - Update certifi: pip install certifi --upgrade
+  - Or disable verification for dev: export PYTHONHTTPSVERIFY=0
+
+Python Script Errors:
+  - Install dependencies: pip install requests python-dotenv
+  - Check Python path: which python
+  - Verify script location matches .env.local
+
+
+SUPPORT
+────────────────────────────────────────────────────────────────────────────────
+Admin Panel:       https://vault.isn.biz/admin
+Documentation:    ./CREDENTIAL-SHARING-GUIDE.md
+Scripts:
+  - vaultwarden-credential-manager.py (Retrieve credentials)
+  - setup-vaultwarden-credentials.ps1 (Create entries)

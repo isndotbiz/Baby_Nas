@@ -1,0 +1,131 @@
+================================================================
+   MANUAL SETUP: Create baby-nas User on Main NAS (10.0.0.89)
+================================================================
+
+Since automated setup has network limitations, follow these manual steps:
+
+================================================================
+STEP 1: Create baby-nas User via TrueNAS Web UI
+================================================================
+
+1. Open Main NAS Web UI: https://10.0.0.89
+   Username: admin
+   Password: 74108520
+
+2. Navigate to: System → Users → Add User
+
+3. Fill in:
+   - Username:                 baby-nas
+   - Full Name:                BabyNAS Replication User
+   - Disable Password Login:   CHECK THIS BOX ✓
+   - Email:                    (leave blank)
+   - Samba Authentication:     (leave unchecked)
+   - Click: SAVE
+
+================================================================
+STEP 2: Get SSH Public Key from BabyNAS
+================================================================
+
+Open a command prompt or PowerShell on your computer and run:
+
+    ssh -i %USERPROFILE%\.ssh\id_ed25519 root@172.31.246.136 "cat ~/.ssh/id_ed25519.pub"
+
+Copy the entire output (starts with "ssh-ed25519..."). It will look like:
+
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx root@babynas
+
+================================================================
+STEP 3: Add SSH Public Key to baby-nas User
+================================================================
+
+1. In TrueNAS Web UI, go to: System → Users → baby-nas → Edit
+
+2. Find: SSH Public Key field
+
+3. Paste the entire SSH key from Step 2
+
+4. Click: SAVE
+
+================================================================
+STEP 4: Grant ZFS Permissions
+================================================================
+
+1. In TrueNAS Web UI, go to: System → Shell
+
+2. Copy and paste this command:
+
+    zfs allow -u baby-nas create,receive,rollback,destroy,mount tank/rag-system
+
+3. Press Enter
+
+4. Verify it worked:
+
+    zfs allow tank/rag-system | grep baby-nas
+
+   Should output something like:
+    baby-nas  create,destroy,mount,receive,rollback
+
+================================================================
+STEP 5: Test the Connection
+================================================================
+
+From your PowerShell, run:
+
+    ssh -i %USERPROFILE%\.ssh\id_ed25519 root@172.31.246.136 "ssh baby-nas@10.0.0.89 'zfs list tank/rag-system'"
+
+Expected output:
+    NAME             USED  AVAIL  REFER  MOUNTPOINT
+    tank/rag-system   12K   7.5T   12K   /mnt/tank/rag-system
+
+If you get "Permission denied", you may need to create the tank/rag-system
+dataset first or verify ZFS permissions were set correctly.
+
+================================================================
+STEP 6: Create tank/rag-system Dataset (If Needed)
+================================================================
+
+If tank/rag-system doesn't exist, create it:
+
+In TrueNAS Web UI:
+1. Go to: Storage → Pools → Tank
+2. Click the "+" button or "Add Dataset"
+3. Name: rag-system
+4. Compression: LZ4
+5. Click: CREATE
+
+================================================================
+SUMMARY
+================================================================
+
+Once you complete these steps:
+
+✓ baby-nas user created
+✓ SSH public key configured
+✓ ZFS permissions granted
+✓ Connection tested
+
+Then you can proceed with:
+
+1. Create snapshot tasks in BabyNAS (172.31.246.136)
+   See: SETUP-QUICK-START.ps1
+
+2. Create replication task in BabyNAS
+   See: SNAPSHOT-REPLICATION-GUIDE.md
+
+3. Monitor replication at Main NAS: https://10.0.0.89
+
+================================================================
+TROUBLESHOOTING
+================================================================
+
+"Permission denied" when running zfs allow:
+→ Try: sudo zfs allow -u baby-nas create,receive,rollback,destroy,mount tank/rag-system
+
+"SSH connection refused":
+→ Make sure SSH is enabled on Main NAS (System → Services → SSH)
+
+"User already exists":
+→ Find the existing baby-nas user and add SSH key to it
+→ Or delete it first (System → Users → baby-nas → Delete) and recreate
+
+================================================================
